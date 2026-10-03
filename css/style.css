@@ -1,0 +1,951 @@
+/* ==========================================================================
+   URL2QR - Modern Warm & Dynamic Gradient Light Styling
+   Interactive Mouse-Responsive Design
+   ========================================================================== */
+
+/* Design Tokens & Dynamic CSS Variables */
+:root {
+  --font-sans: 'Pretendard', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Mouse Reactive Dynamic Properties (Updated via JS) */
+  --mouse-x: 50vw;
+  --mouse-y: 50vh;
+  --mouse-ratio-x: 0.5;
+  --mouse-ratio-y: 0.5;
+  --dynamic-hue-1: 45deg;
+  --dynamic-hue-2: 25deg;
+  --dynamic-hue-3: 52deg;
+  --dynamic-angle: 135deg;
+  
+  /* Brand Signature Colors (Yellow & Warm Sunset) */
+  --brand-yellow: #FFC000;
+  --brand-yellow-bright: #FFD233;
+  --brand-yellow-deep: #FFA000;
+  --brand-yellow-hover: #EAA000;
+  --brand-yellow-glow: rgba(255, 192, 0, 0.4);
+  --brand-yellow-soft: rgba(255, 192, 0, 0.15);
+  
+  /* Light Theme Palette (Default & Primary Focus) */
+  --bg-main: #FFFDF9;
+  --bg-gradient-base: linear-gradient(
+    var(--dynamic-angle, 135deg),
+    hsl(var(--dynamic-hue-1, 45deg) 100% 97%) 0%,
+    hsl(var(--dynamic-hue-2, 25deg) 100% 96%) 35%,
+    hsl(var(--dynamic-hue-3, 50deg) 100% 95%) 70%,
+    #FFFDF5 100%
+  );
+  
+  --bg-card: rgba(255, 255, 255, 0.82);
+  --bg-card-border: rgba(255, 215, 64, 0.35);
+  --bg-input: rgba(255, 255, 255, 0.95);
+  --bg-input-focus: #FFFFFF;
+  --text-primary: #1E293B;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --accent-blue: #3B82F6;
+  --accent-coral: #FF7043;
+  --danger-red: #E11D48;
+  
+  --qr-bg: #FFFFFF;
+  --qr-card-shadow: 
+    0 24px 48px -12px rgba(255, 160, 0, 0.18),
+    0 8px 24px -4px rgba(30, 41, 59, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+    
+  --glass-blur: blur(20px);
+  --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark Theme Variant (Preserved for user preference toggle) */
+body.dark-theme {
+  --bg-main: #0C1017;
+  --bg-gradient-base: linear-gradient(
+    var(--dynamic-angle, 135deg),
+    hsl(var(--dynamic-hue-1, 45deg) 60% 8%) 0%,
+    hsl(var(--dynamic-hue-2, 25deg) 50% 6%) 40%,
+    hsl(var(--dynamic-hue-3, 50deg) 45% 7%) 80%,
+    #090D14 100%
+  );
+  --bg-card: rgba(18, 24, 38, 0.85);
+  --bg-card-border: rgba(255, 215, 64, 0.2);
+  --bg-input: rgba(14, 18, 27, 0.92);
+  --bg-input-focus: rgba(20, 26, 39, 1);
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --qr-card-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.6), 0 0 35px var(--brand-yellow-glow);
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+  background: var(--bg-main);
+  background-image: var(--bg-gradient-base);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* -------------------------------------------------------------
+   Background Dynamic Lighting & Interactive Mouse Aura
+   ------------------------------------------------------------- */
+.bg-effects {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Interactive Cursor Spotlight Aura */
+.dynamic-mouse-aura {
+  position: absolute;
+  top: var(--mouse-y, 50vh);
+  left: var(--mouse-x, 50vw);
+  width: 700px;
+  height: 700px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    hsla(var(--dynamic-hue-1, 45deg), 100%, 65%, 0.25) 0%,
+    hsla(var(--dynamic-hue-2, 25deg), 100%, 70%, 0.15) 35%,
+    hsla(var(--dynamic-hue-3, 50deg), 100%, 80%, 0.05) 60%,
+    transparent 75%
+  );
+  filter: blur(50px);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  will-change: top, left, background;
+}
+
+body.dark-theme .dynamic-mouse-aura {
+  background: radial-gradient(
+    circle,
+    hsla(var(--dynamic-hue-1, 45deg), 100%, 55%, 0.2) 0%,
+    hsla(var(--dynamic-hue-2, 25deg), 100%, 50%, 0.12) 35%,
+    transparent 70%
+  );
+}
+
+/* Floating Ambient Orbs (Shifts gently with mouse position) */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+.orb-primary {
+  width: 550px;
+  height: 550px;
+  top: calc(-80px + (var(--mouse-ratio-y, 0.5) * 60px));
+  left: calc(15% + (var(--mouse-ratio-x, 0.5) * 80px));
+  background: radial-gradient(circle, hsla(var(--dynamic-hue-1, 45deg), 100%, 60%, 0.4) 0%, rgba(255, 192, 0, 0) 70%);
+  animation: floatOrb1 16s ease-in-out infinite alternate;
+}
+
+.orb-secondary {
+  width: 500px;
+  height: 500px;
+  bottom: calc(5% - (var(--mouse-ratio-y, 0.5) * 50px));
+  right: calc(10% - (var(--mouse-ratio-x, 0.5) * 70px));
+  background: radial-gradient(circle, hsla(var(--dynamic-hue-2, 25deg), 100%, 68%, 0.35) 0%, rgba(255, 112, 67, 0) 70%);
+  animation: floatOrb2 18s ease-in-out infinite alternate;
+}
+
+.orb-accent {
+  width: 400px;
+  height: 400px;
+  top: calc(40% + (var(--mouse-ratio-y, 0.5) * 40px));
+  left: calc(50% + (var(--mouse-ratio-x, 0.5) * 50px));
+  background: radial-gradient(circle, hsla(var(--dynamic-hue-3, 52deg), 100%, 65%, 0.25) 0%, rgba(255, 235, 59, 0) 70%);
+  transform: translate(-50%, -50%);
+  animation: floatOrb3 20s ease-in-out infinite alternate;
+}
+
+/* Subtle Geometric Grid Texture */
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255, 160, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 160, 0, 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse at calc(var(--mouse-x, 50vw)) calc(var(--mouse-y, 50vh)), black 20%, transparent 80%);
+}
+
+body.dark-theme .grid-overlay {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* -------------------------------------------------------------
+   App Layout Structure
+   ------------------------------------------------------------- */
+.app-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 1.5rem 2.2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header & Brand Logo */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 1rem;
+}
+
+.brand-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 12px;
+  transition: transform 0.25s var(--transition-smooth), filter 0.25s ease;
+}
+
+.brand-logo-link:hover {
+  transform: scale(1.05) translateY(-1px);
+  filter: drop-shadow(0 6px 16px rgba(255, 192, 0, 0.45));
+}
+
+.brand-logo {
+  height: 46px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(255, 192, 0, 0.25);
+}
+
+.theme-toggle-btn {
+  background: var(--bg-card);
+  border: 1.5px solid var(--bg-card-border);
+  color: var(--text-primary);
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: var(--glass-blur);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--brand-yellow);
+  color: var(--brand-yellow-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 192, 0, 0.3);
+}
+
+.theme-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+body.dark-theme .sun-icon { display: block; }
+body.dark-theme .moon-icon { display: none; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .moon-icon { display: block; }
+
+/* Main Dynamic Stage */
+.main-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  padding: 1rem 0 3rem;
+  min-height: calc(100vh - 160px);
+}
+
+/* -------------------------------------------------------------
+   Hero Intro & Interactive Titles
+   ------------------------------------------------------------- */
+.hero-intro {
+  text-align: center;
+  max-width: 680px;
+  margin-bottom: 2.2rem;
+  transition: opacity 0.45s var(--transition-smooth), transform 0.45s var(--transition-smooth), max-height 0.45s ease;
+  transform-origin: top center;
+}
+
+.hero-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  margin-bottom: 0.85rem;
+  line-height: 1.25;
+}
+
+/* Dynamic Gradient Accent linked to Mouse Hue Shift */
+.gradient-accent {
+  background: linear-gradient(
+    calc(var(--dynamic-angle, 135deg)),
+    hsl(var(--dynamic-hue-1, 45deg) 100% 48%) 0%,
+    hsl(var(--dynamic-hue-2, 25deg) 100% 50%) 60%,
+    hsl(var(--dynamic-hue-3, 52deg) 100% 46%) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  word-break: keep-all;
+}
+
+/* -------------------------------------------------------------
+   Interactive URL Input Section
+   ------------------------------------------------------------- */
+.url-input-section {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  transition: transform 0.65s var(--transition-smooth), opacity 0.5s ease;
+}
+
+/* Generated QR State Layout Modifications */
+.app-layout.has-qr .hero-intro {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+  transform: translateY(-20px) scale(0.95);
+  overflow: hidden;
+}
+
+.app-layout.has-qr .main-stage {
+  justify-content: space-between;
+  padding-top: 1rem;
+}
+
+.app-layout.has-qr .url-input-section {
+  margin-top: 2rem;
+  animation: slideToBottom 0.65s var(--transition-smooth) forwards;
+}
+
+/* High-End Glassmorphism Form Card */
+.url-form-card {
+  width: 100%;
+}
+
+.input-glow-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 2px solid var(--bg-card-border);
+  border-radius: 22px;
+  padding: 0.55rem 0.65rem 0.55rem 1.3rem;
+  backdrop-filter: var(--glass-blur);
+  box-shadow: 
+    0 14px 34px -8px rgba(255, 180, 0, 0.16),
+    0 4px 16px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  transition: all 0.3s var(--transition-smooth);
+}
+
+.input-glow-wrapper:focus-within {
+  border-color: var(--brand-yellow);
+  background: var(--bg-input-focus);
+  box-shadow: 
+    0 16px 40px -6px var(--brand-yellow-glow),
+    0 0 0 4px rgba(255, 192, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.input-icon-left {
+  display: flex;
+  align-items: center;
+  color: var(--brand-yellow-deep);
+  margin-right: 0.9rem;
+}
+
+.input-icon-left svg {
+  width: 24px;
+  height: 24px;
+}
+
+.url-input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1.05rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 0.75rem 0;
+  min-width: 0;
+}
+
+.url-input-field::placeholder {
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  font-weight: 400;
+}
+
+.input-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-right: 0.65rem;
+}
+
+.inline-btn {
+  background: rgba(255, 192, 0, 0.1);
+  border: 1px solid rgba(255, 192, 0, 0.2);
+  color: var(--text-secondary);
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inline-btn:hover {
+  background: var(--brand-yellow);
+  color: #000000;
+  border-color: var(--brand-yellow);
+  transform: translateY(-1px);
+}
+
+.inline-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+#btnClearInput {
+  display: none;
+  padding: 0.45rem;
+}
+
+.input-glow-wrapper.has-value #btnClearInput {
+  display: flex;
+}
+
+/* Gradient Submit Button */
+.submit-btn {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--dynamic-hue-1, 45deg) 100% 50%) 0%,
+    hsl(var(--dynamic-hue-2, 25deg) 100% 50%) 100%
+  );
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 16px;
+  padding: 0.85rem 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.25s var(--transition-smooth);
+  box-shadow: 0 6px 20px rgba(255, 160, 0, 0.35);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 26px rgba(255, 160, 0, 0.5);
+  filter: brightness(1.04);
+}
+
+.submit-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-arrow {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.submit-btn:hover .btn-arrow {
+  transform: translateX(3px);
+}
+
+.input-hint-message {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 0.6rem;
+  padding-left: 0.8rem;
+  color: var(--danger-red);
+  min-height: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.input-hint-message.show {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------
+   QR Code Display Section (Center Stage)
+   ------------------------------------------------------------- */
+.qr-display-section {
+  display: none;
+  width: 100%;
+  max-width: 460px;
+  margin: auto 0;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: all 0.5s var(--transition-smooth);
+}
+
+.app-layout.has-qr .qr-display-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 1;
+  transform: scale(1);
+  animation: qrCardEnter 0.65s var(--transition-smooth) forwards;
+}
+
+.qr-card-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The Interactive QR Code Card */
+.qr-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1.5px solid var(--bg-card-border);
+  border-radius: 30px;
+  padding: 1.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--qr-card-shadow);
+  backdrop-filter: var(--glass-blur);
+  cursor: pointer;
+  transition: all 0.35s var(--transition-smooth);
+  width: 100%;
+  outline: none;
+}
+
+.qr-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--brand-yellow);
+  box-shadow: 
+    0 30px 60px -15px rgba(255, 170, 0, 0.28),
+    0 12px 30px -5px rgba(0, 0, 0, 0.08),
+    0 0 45px var(--brand-yellow-glow);
+}
+
+.qr-card:focus-visible {
+  border-color: var(--brand-yellow);
+  outline: 3px solid var(--brand-yellow);
+}
+
+/* QR Code Frame */
+.qr-code-frame {
+  position: relative;
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 192, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrcode-canvas-holder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrcode-canvas-holder img,
+.qrcode-canvas-holder canvas {
+  display: block;
+  width: 250px !important;
+  height: 250px !important;
+  image-rendering: pixelated;
+}
+
+/* Hover Overlay on QR Image */
+.qr-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 26, 38, 0.88);
+  backdrop-filter: blur(5px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  transform: scale(0.95);
+  border-radius: 20px;
+  color: #FFFFFF;
+  pointer-events: none;
+}
+
+.qr-card:hover .qr-hover-overlay {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.download-badge-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--brand-yellow) 0%, #FF9100 100%);
+  color: #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(255, 192, 0, 0.6);
+  animation: pulseIcon 1.8s infinite;
+}
+
+.download-badge-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.overlay-text {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 1rem;
+  border-radius: 24px;
+}
+
+/* QR Card Meta & Info */
+.qr-card-meta {
+  width: 100%;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.download-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(255, 192, 0, 0.14);
+  border: 1px solid rgba(255, 192, 0, 0.35);
+  color: var(--text-primary);
+  padding: 0.5rem 1.15rem;
+  border-radius: 50px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  width: 9px;
+  height: 9px;
+  background-color: var(--brand-yellow-deep);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 10px var(--brand-yellow);
+  animation: pulseDot 1.5s infinite;
+}
+
+.current-target-url {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 0.8rem;
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Quick Actions below QR */
+.qr-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.35rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.action-btn {
+  background: var(--bg-card);
+  border: 1.5px solid var(--bg-card-border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: var(--glass-blur);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-yellow-deep);
+}
+
+.action-btn:hover {
+  background: var(--brand-yellow-soft);
+  border-color: var(--brand-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 192, 0, 0.25);
+}
+
+#btnDownloadJpg {
+  background: linear-gradient(135deg, var(--brand-yellow) 0%, #FFA000 100%);
+  color: #111827;
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(255, 160, 0, 0.3);
+}
+
+#btnDownloadJpg svg {
+  color: #111827;
+}
+
+#btnDownloadJpg:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 8px 24px rgba(255, 160, 0, 0.45);
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  bottom: 2.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  background: rgba(30, 41, 59, 0.95);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.8rem 1.5rem;
+  border-radius: 35px;
+  font-size: 0.94rem;
+  font-weight: 600;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  animation: toastIn 0.3s var(--transition-smooth) forwards;
+  pointer-events: auto;
+}
+
+.toast.success {
+  border-color: var(--brand-yellow);
+}
+
+.toast.success svg {
+  color: var(--brand-yellow);
+}
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 1.5rem 0 0.5rem;
+}
+
+/* -------------------------------------------------------------
+   Keyframe Animations
+   ------------------------------------------------------------- */
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(45px, -35px) scale(1.08); }
+  100% { transform: translate(-35px, 45px) scale(0.96); }
+}
+
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, 30px) scale(1.06); }
+  100% { transform: translate(30px, -40px) scale(0.95); }
+}
+
+@keyframes floatOrb3 {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-40%, -60%) scale(1.1); }
+  100% { transform: translate(-60%, -40%) scale(0.9); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes qrCardEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideToBottom {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes toastIn {
+  0% {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* -------------------------------------------------------------
+   Responsive Media Queries
+   ------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .app-layout {
+    padding: 1rem 1.25rem;
+  }
+
+  .hero-title {
+    font-size: 2.1rem;
+  }
+
+  .input-glow-wrapper {
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .url-input-field {
+    width: 100%;
+    order: 1;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .input-icon-left {
+    order: 0;
+    margin-right: 0.4rem;
+  }
+
+  .input-inline-actions {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .submit-btn {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .qr-card {
+    padding: 1.35rem;
+  }
+
+  .qrcode-canvas-holder img,
+  .qrcode-canvas-holder canvas {
+    width: 210px !important;
+    height: 210px !important;
+  }
+
+  .qr-quick-actions {
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+}
